@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Validation écoutants - AnyTalk</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="particles-container"></div>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand">
+                <span class="brand-text">AnyTalk</span>
+            </a>
+            <div class="nav-links">
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <button id="logout-btn" class="nav-btn">Déconnexion</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="dashboard-container">
+        <div class="container">
+            <h1 class="page-title">Validation des écoutants</h1>
+            <p class="form-hint">Approuvez chaque écoutant en vérifiant son diplôme. Les approuvés apparaîtront sur le site pour les appelants. En attente :</p>
+            <div id="admin-pending-list" class="matches-grid"></div>
+            <p id="admin-empty" class="form-hint" style="display:none;">Aucun écoutant en attente de validation.</p>
+
+            <h2 class="section-title" style="margin-top:2.5rem">Demandes de modification de profil</h2>
+            <p class="form-hint">Les écoutants validés peuvent demander à modifier leur profil. Autorisez-les pour qu’ils puissent éditer à nouveau.</p>
+            <div id="admin-profile-edit-list" class="matches-grid"></div>
+            <p id="admin-profile-edit-empty" class="form-hint" style="display:none;">Aucune demande de modification.</p>
+        </div>
+    </main>
+
+    <script type="module" src="firebase-config.js"></script>
+    <script type="module" src="admin.js"></script>
+    <script src="particles.js"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paiement reçu - AnyTalk</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="particles-container"></div>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand"><span class="brand-text">AnyTalk</span></a>
+            <div class="nav-links">
+                <a href="appelant.html" class="nav-link">Tableau de bord</a>
+                <button id="logout-btn" class="nav-link">Déconnexion</button>
+            </div>
+        </div>
+    </nav>
+    <main class="dashboard-container">
+        <div class="container container--narrow">
+            <div id="success-msg" class="profile-card" style="display:none;">
+                <h2 class="page-title">Réservation confirmée</h2>
+                <p class="form-hint">Votre paiement a bien été enregistré. Votre créneau est réservé.</p>
+                <a href="appelant.html" class="btn btn-primary" style="margin-top:1rem">Retour aux écoutants</a>
+            </div>
+            <div id="success-loading" class="reserver-loading">Confirmation en cours...</div>
+            <div id="success-error" class="error-message" style="display:none;"></div>
+        </div>
+    </main>
+    <script type="module" src="reserver-success.js"></script>
+    <script src="particles.js"></script>
+</body>
+</html>

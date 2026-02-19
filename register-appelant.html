@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription Appelant - AnyTalk</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="particles-container"></div>
+    <div id="file-protocol-warning" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.9); color:#fff; z-index:9999; flex-direction:column; align-items:center; justify-content:center; padding:2rem; text-align:center; font-family:system-ui,sans-serif;">
+        <p style="font-size:1.25rem; margin-bottom:1rem;">⚠️ Ce site ne peut pas fonctionner en l'ouvrant directement (fichier local).</p>
+        <p style="margin-bottom:1.5rem;">Lance dans le terminal : <code style="background:#333; padding:.5rem 1rem; border-radius:6px;">npm run serve</code></p>
+        <p style="opacity:.9;">Puis ouvre <strong>http://localhost:8000</strong></p>
+    </div>
+    <script>
+      (function(){ if (window.location.protocol === 'file:') document.getElementById('file-protocol-warning').style.display = 'flex'; })();
+    </script>
+    <div class="auth-container">
+        <div class="auth-card">
+            <a href="index.html" class="back-link">← Retour</a>
+            <div class="auth-header">
+                <h1>Je veux parler</h1>
+                <p class="form-hint" style="margin-top:0.5rem;">Inscription simple — vous restez anonyme. Seul l’email et un mot de passe sont demandés.</p>
+            </div>
+            <form id="register-form">
+                <div class="form-group" style="display:none;">
+                    <label>Je suis</label>
+                    <div class="role-buttons">
+                        <label class="role-btn">
+                            <input type="radio" name="type" value="appelant" required id="type-appelant" checked>
+                            <span>Appelant</span>
+                        </label>
+                        <label class="role-btn">
+                            <input type="radio" name="type" value="ecoutant" id="type-ecoutant">
+                            <span>Écoutant</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required placeholder="votre@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" required minlength="6" placeholder="6 caractères minimum">
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Créer mon compte</button>
+            </form>
+            <p class="auth-footer">Déjà un compte ? <a href="login.html">Se connecter</a></p>
+            <div id="error-message" class="error-message"></div>
+        </div>
+    </div>
+    <script type="module" src="firebase-config.js"></script>
+    <script type="module" src="register.js"></script>
+    <script src="particles.js"></script>
+</body>
+</html>

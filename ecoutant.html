@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Écoutant - AnyTalk</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="particles-container"></div>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand">
+                <span class="brand-text">AnyTalk</span>
+            </a>
+            <div class="nav-links">
+                <button id="logout-btn" class="nav-link">Déconnexion</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="dashboard-container">
+        <div class="container">
+            <h1 class="page-title">Mon dashboard écoutant</h1>
+
+            <!-- Changement de rôle -->
+            <div id="role-change-section" class="profile-edit-card" style="margin-bottom:1.5rem;"></div>
+
+            <!-- Stats -->
+            <div class="stats-cards">
+                <div class="stat-card">
+                    <span class="stat-value" id="stat-hours">0</span>
+                    <span class="stat-label">Heures comptabilisées</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="stat-rating">–</span>
+                    <span class="stat-label">Note moyenne</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="stat-reviews">0</span>
+                    <span class="stat-label">Avis reçus</span>
+                </div>
+            </div>
+
+            <!-- Mon planning -->
+            <div id="planning-card" class="profile-edit-card">
+                <h2 class="section-title">Mon planning</h2>
+
+                <h3 class="planning-subtitle">Créneaux récurrents (chaque semaine)</h3>
+                <p class="form-hint">Ces plages se répètent chaque semaine. Les appelants voient les créneaux sur les 3 prochains mois.</p>
+                <div class="planning-add">
+                    <select id="planning-day" class="planning-input">
+                        <option value="1">Lundi</option>
+                        <option value="2">Mardi</option>
+                        <option value="3">Mercredi</option>
+                        <option value="4">Jeudi</option>
+                        <option value="5">Vendredi</option>
+                        <option value="6">Samedi</option>
+                        <option value="0">Dimanche</option>
+                    </select>
+                    <input type="time" id="planning-start" class="planning-input" value="09:00">
+                    <span class="planning-sep">→</span>
+                    <input type="time" id="planning-end" class="planning-input" value="12:00">
+                    <button type="button" id="planning-add-btn" class="btn btn-secondary">Ajouter</button>
+                </div>
+                <ul id="planning-list" class="planning-list"></ul>
+
+                <h3 class="planning-subtitle">Disponibilités à date fixe (long terme)</h3>
+                <p class="form-hint">Ajoutez des créneaux pour des dates précises, autant de semaines ou mois à l'avance que vous voulez.</p>
+                <div class="planning-add">
+                    <input type="date" id="planning-date" class="planning-input">
+                    <input type="time" id="planning-date-start" class="planning-input" value="09:00">
+                    <span class="planning-sep">→</span>
+                    <input type="time" id="planning-date-end" class="planning-input" value="12:00">
+                    <button type="button" id="planning-date-add-btn" class="btn btn-secondary">Ajouter</button>
+                </div>
+                <ul id="planning-dates-list" class="planning-list"></ul>
+            </div>
+
+            <!-- Formulaire profil -->
+            <div id="profile-form-card" class="profile-edit-card">
+                <h2 class="section-title">Mon profil (visible par les appelants)</h2>
+                <div id="profile-locked-ui"></div>
+                <form id="ecoutant-profile-form">
+                    <p class="form-hint" style="margin-bottom:0.75rem">Les infos ci-dessous et les pièces jointes sont envoyées par mail à l’équipe. Seuls le pseudo, la bio et la disponibilité sont affichés aux appelants.</p>
+                    <div class="form-group">
+                        <label for="nom">Nom <span style="color:var(--error, #c33)">*</span></label>
+                        <input type="text" id="nom" required placeholder="Votre nom de famille">
+                    </div>
+                    <div class="form-group">
+                        <label for="prenom">Prénom <span style="color:var(--error, #c33)">*</span></label>
+                        <input type="text" id="prenom" required placeholder="Votre prénom">
+                    </div>
+                    <div class="form-group">
+                        <label for="telephone">Numéro de téléphone <span style="color:var(--error, #c33)">*</span></label>
+                        <input type="tel" id="telephone" required placeholder="06 12 34 56 78">
+                    </div>
+                    <div class="form-group">
+                        <label for="email_contact">Adresse mail <span style="color:var(--error, #c33)">*</span></label>
+                        <input type="email" id="email_contact" required placeholder="votre@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="date_naissance">Date de naissance <span style="color:var(--error, #c33)">*</span></label>
+                        <input type="date" id="date_naissance" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="pseudo">Pseudo <span style="color:var(--error, #c33)">*</span></label>
+                        <input type="text" id="pseudo" required placeholder="Ex : Écoute_F247">
+                    </div>
+                    <div class="form-group">
+                        <label>Genre</label>
+                        <div class="gender-buttons">
+                            <label class="gender-btn"><input type="radio" name="gender" value="femme"> <span>Femme</span></label>
+                            <label class="gender-btn"><input type="radio" name="gender" value="homme"> <span>Homme</span></label>
+                            <label class="gender-btn"><input type="radio" name="gender" value="non_specifie"> <span>Non spécifié</span></label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="experience_public">Expérience et public cible (texte libre)</label>
+                        <textarea id="experience_public" rows="3" placeholder="Ex : Psychologue, écoute adultes et ados, thématiques travail et deuil..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="bio">Bio (présentation visible par les appelants)</label>
+                        <textarea id="bio" rows="3" placeholder="Quelques mots sur votre écoute..."></textarea>
+                    </div>
+                    <div class="form-group" id="carte-identite-upload-wrap">
+                        <label for="carte_identite_file">Carte d'identité <span style="color:var(--error, #c33)">*</span></label>
+                        <p class="form-hint">Image ou PDF. Envoyée par mail à l'équipe avec vos infos.</p>
+                        <input type="file" id="carte_identite_file" accept="image/*,application/pdf" style="margin-bottom:0.5rem">
+                        <p id="carte_identite_upload_status" class="form-hint"></p>
+                    </div>
+                    <div class="form-group" id="cv-upload-wrap">
+                        <label for="cv_file">Diplôme / CV <span style="color:var(--error, #c33)">*</span></label>
+                        <p class="form-hint">Image ou PDF. Envoyé par mail à l'équipe avec vos infos.</p>
+                        <input type="file" id="cv_file" accept="image/*,application/pdf" style="margin-bottom:0.5rem">
+                        <p id="cv_upload_status" class="form-hint"></p>
+                    </div>
+                    <div class="form-group" id="availability-now-wrap">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="is_available_now" checked>
+                            <span>Disponible maintenant</span>
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="profile-submit-btn">Enregistrer mon profil</button>
+                </form>
+                <p id="profile-saved-msg" class="form-hint success-msg" style="display:none;">Profil enregistré.</p>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="firebase-config.js"></script>
+    <script type="module" src="ecoutant.js"></script>
+    <script src="particles.js"></script>
+</body>
+</html>

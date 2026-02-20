@@ -13,25 +13,31 @@
     <div id="particles-container"></div>
     <nav class="navbar">
         <div class="nav-container">
-            <a href="index.html" class="nav-brand">
+            <a href="appelant.html" class="nav-brand" aria-label="AnyTalk">
                 <span class="brand-text">AnyTalk</span>
             </a>
             <div class="nav-links">
                 <a href="appelant.html" class="nav-link">← Retour aux écoutants</a>
-                <button id="logout-btn" class="nav-link">Déconnexion</button>
+                <button type="button" id="logout-btn" class="nav-link">Déconnexion</button>
             </div>
         </div>
     </nav>
 
     <main class="dashboard-container">
         <div class="container container--narrow">
+            <nav class="breadcrumb" aria-label="Fil d'Ariane">
+                <a href="appelant.html">Écoutants</a>
+                <span aria-hidden="true">›</span>
+                <span id="reserver-breadcrumb-current">Réserver un créneau</span>
+            </nav>
             <h1 class="page-title">Réserver un créneau</h1>
-            <div id="reserver-loading" class="reserver-loading">Chargement...</div>
+            <div id="reserver-loading" class="reserver-loading">Chargement des créneaux disponibles…</div>
             <div id="reserver-error" class="error-message" style="display:none;"></div>
             <div id="reserver-content" style="display:none;">
                 <div class="reserver-card" id="reserver-card"></div>
-                <p class="reserver-label">Choisissez un créneau d'1 heure :</p>
+                <p class="reserver-label">Choisissez un créneau d’1 heure :</p>
                 <div id="reserver-slots" class="slots-grid"></div>
+                <p id="reserver-no-slots" class="form-hint" style="display:none;">Aucun créneau libre pour le moment. Cet écoutant peut ajouter des disponibilités dans son planning.</p>
                 <div id="reserver-confirm" class="reserver-confirm" style="display:none;"></div>
             </div>
         </div>

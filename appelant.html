@@ -14,11 +14,12 @@
 
     <nav class="navbar">
         <div class="nav-container">
-            <a href="index.html" class="nav-brand">
+            <a href="appelant.html" class="nav-brand" aria-label="AnyTalk - Tableau de bord">
                 <span class="brand-text">AnyTalk</span>
             </a>
             <div class="nav-links">
-                <button id="logout-btn" class="nav-link">Déconnexion</button>
+                <a href="appelant.html" class="nav-link">Tableau de bord</a>
+                <button type="button" id="logout-btn" class="nav-link">Déconnexion</button>
             </div>
         </div>
     </nav>
@@ -30,11 +31,13 @@
 
             <div class="matches-section" id="matches-section">
                 <h2 class="section-title">
-                    <span class="search-icon">◇</span>
+                    <span class="search-icon" aria-hidden="true">◇</span>
                     <span id="matches-title">Choisir un écoutant</span>
                 </h2>
+                <p class="form-hint section-intro">Sélectionnez une personne à l’écoute, puis réservez un créneau pour échanger en visio.</p>
                 <div class="search-bar-wrap" id="search-bar-wrap">
-                    <input type="text" id="search-input" class="search-input" placeholder="Rechercher par pseudo (ex. Écoute_F247)...">
+                    <label for="search-input" class="visually-hidden">Rechercher un écoutant par pseudo</label>
+                    <input type="text" id="search-input" class="search-input" placeholder="Rechercher par pseudo (ex. Écoute_F247)" aria-label="Rechercher par pseudo">
                 </div>
                 <div class="matches-grid" id="matches-grid"></div>
             </div>

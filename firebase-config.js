@@ -17,8 +17,9 @@ const firebaseConfig = {
   measurementId: "G-WPH9QC2853"
 };
 
+// Whereby — appels vidéo intégrés. Compte sur whereby.com → Embedded → votre subdomain (ex: "anytalk" → anytalk.whereby.com).
 export const wherebyConfig = {
-  subdomain: "votre-subdomain",
+  subdomain: "any-talk",
   apiKey: "votre-api-key-whereby"
 };
 

@@ -171,6 +171,11 @@ body {
 
 .arrow { margin-left: 0.25rem; opacity: 0.8; }
 
+.hero-cta { min-width: 160px; }
+.hero-login-hint { margin-top: 1.25rem; font-size: 0.95rem; color: var(--text-muted); }
+.hero-login-hint a { color: var(--accent); text-decoration: none; font-weight: 500; }
+.hero-login-hint a:hover { text-decoration: underline; }
+
 /* ——— Buttons ——— */
 .btn {
   display: inline-block;
@@ -215,6 +220,10 @@ body {
 
 .btn-full { width: 100%; text-align: center; }
 .btn-large { padding: 1rem 2rem; font-size: 1rem; }
+.btn:focus-visible,
+.nav-link:focus-visible,
+.close-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
 /* ——— Features ——— */
 .features-grid {
@@ -308,6 +317,8 @@ body {
   font-size: 0.9rem;
   color: var(--text);
 }
+.required { color: var(--danger); }
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
 
 .form-group input[type="email"],
 .form-group input[type="password"],
@@ -328,7 +339,8 @@ body {
 
 .form-group input:focus,
 .form-group select:focus,
-.form-group textarea:focus {
+.form-group textarea:focus,
+.search-input:focus {
   outline: none;
   border-color: var(--accent);
 }
@@ -362,6 +374,15 @@ body {
 
 .checkbox-label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.95rem; }
 .error-message { color: var(--danger); font-size: 0.9rem; margin-top: 0.75rem; }
+.empty-state { text-align: center; padding: 2rem 1rem; }
+.empty-state-title { font-weight: 600; margin: 0 0 0.5rem; color: var(--text); }
+.empty-state-inline { padding: 0.75rem 0; }
+.section-intro { margin-top: -0.5rem; margin-bottom: 1rem; }
+.loading-dots { color: var(--text-muted); }
+.breadcrumb { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem; }
+.breadcrumb a { color: var(--accent); text-decoration: none; }
+.breadcrumb a:hover { text-decoration: underline; }
+.breadcrumb span { margin: 0 0.35rem; }
 
 /* ——— Dashboard ——— */
 .dashboard-container { padding: 2rem 1.5rem; min-height: 100vh; }
@@ -424,6 +445,16 @@ input.full-width { width: 100%; }
 .planning-list .planning-remove:hover { color: var(--danger); }
 .planning-subtitle { font-size: 1rem; font-weight: 600; margin: 1.25rem 0 0.5rem; color: var(--text); }
 .planning-subtitle:first-of-type { margin-top: 0; }
+
+/* Calendrier écoutant */
+.calendar-list { list-style: none; margin: 0; padding: 0; }
+.calendar-item { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
+.calendar-item:last-child { border-bottom: none; }
+.calendar-date { font-weight: 600; color: var(--accent); }
+.calendar-time { color: var(--text); }
+.calendar-pseudo { font-weight: 500; }
+.calendar-status { font-size: 0.85rem; color: var(--text-muted); }
+.btn-small { padding: 0.35rem 0.75rem; font-size: 0.9rem; margin-left: auto; }
 
 /* Créneaux réservation */
 .slots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.5rem; margin-top: 1rem; }
@@ -605,6 +636,13 @@ input.full-width { width: 100%; }
 }
 
 .call-room-id { font-size: 0.85rem; margin-top: 0.5rem; color: var(--text-muted); }
+.call-steps { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; }
+
+/* ——— Success (réservation) ——— */
+.success-card .next-step-label { font-weight: 600; margin: 1rem 0 0.5rem; font-size: 0.95rem; color: var(--text); }
+.success-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-top: 0.5rem; }
+.success-actions .call-link-wrap { order: -1; }
+.success-actions .call-link-wrap + .btn { margin-left: 0; }
 
 /* ——— Footer ——— */
 .footer {

@@ -13,11 +13,12 @@
     <div id="particles-container"></div>
     <nav class="navbar">
         <div class="nav-container">
-            <a href="index.html" class="nav-brand">
+            <a href="ecoutant.html" class="nav-brand" aria-label="AnyTalk - Mon dashboard">
                 <span class="brand-text">AnyTalk</span>
             </a>
             <div class="nav-links">
-                <button id="logout-btn" class="nav-link">Déconnexion</button>
+                <a href="ecoutant.html" class="nav-link">Mon dashboard</a>
+                <button type="button" id="logout-btn" class="nav-link">Déconnexion</button>
             </div>
         </div>
     </nav>
@@ -28,6 +29,15 @@
 
             <!-- Changement de rôle -->
             <div id="role-change-section" class="profile-edit-card" style="margin-bottom:1.5rem;"></div>
+
+            <!-- Calendrier / Mes rendez-vous -->
+            <div id="calendar-card" class="profile-edit-card">
+                <h2 class="section-title">Mon calendrier — Rendez-vous à venir</h2>
+                <p class="form-hint">Les créneaux réservés par les appelants apparaissent ici. Au moment du rendez-vous, cliquez sur « Rejoindre l’appel » pour lancer la visio.</p>
+                <div id="calendar-loading" class="form-hint">Chargement des rendez-vous…</div>
+                <ul id="calendar-list" class="calendar-list"></ul>
+                <p id="calendar-empty" class="form-hint empty-state-inline" style="display:none;">Aucun rendez-vous à venir. Complétez votre planning pour que les appelants puissent réserver des créneaux.</p>
+            </div>
 
             <!-- Stats -->
             <div class="stats-cards">

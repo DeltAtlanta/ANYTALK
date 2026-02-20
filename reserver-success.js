@@ -28,6 +28,16 @@ onAuthStateChanged(auth, async function (user) {
     await confirmPayment({ stripeSessionId: stripeSessionId });
     if (loadingEl) loadingEl.style.display = 'none';
     if (msgEl) msgEl.style.display = 'block';
+    var ecoutantId = sessionStorage.getItem('anytalk_ecoutant_id');
+    var sessionId = sessionStorage.getItem('anytalk_session_id');
+    if (ecoutantId && msgEl) {
+      var callUrl = 'call.html?ecoutantId=' + encodeURIComponent(ecoutantId) + (sessionId ? '&sessionId=' + encodeURIComponent(sessionId) : '');
+      var callLink = '<a href="' + callUrl + '" class="btn btn-primary" style="margin-left:0.5rem">Démarrer l\'appel vidéo</a>';
+      var wrap = msgEl.querySelector('.call-link-wrap');
+      if (wrap) wrap.innerHTML = callLink;
+      sessionStorage.removeItem('anytalk_ecoutant_id');
+      if (sessionId) sessionStorage.removeItem('anytalk_session_id');
+    }
   } catch (err) {
     if (loadingEl) loadingEl.style.display = 'none';
     if (errorEl) {

@@ -1,5 +1,5 @@
 import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
-import { doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+import { collection, doc, getDoc, getDocs, query, setDoc, where } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
 import { auth, db, FORMSPREE_FORM_ID } from './firebase-config.js';
 
 var ADMIN_UID = 'FWrrl4ZGDhRLEjYkIw1H3AFIgtf2';
@@ -109,6 +109,61 @@ onAuthStateChanged(auth, async (user) => {
   if (statHours) statHours.textContent = data.hoursComptabilisees != null ? data.hoursComptabilisees : '0';
   if (statRating) statRating.textContent = data.rating != null ? data.rating.toFixed(1) : '–';
   if (statReviews) statReviews.textContent = data.reviewsCount != null ? data.reviewsCount : '0';
+
+  // Calendrier : sessions où je suis écoutant (non annulées, à venir en priorité)
+  var calendarList = document.getElementById('calendar-list');
+  var calendarLoading = document.getElementById('calendar-loading');
+  var calendarEmpty = document.getElementById('calendar-empty');
+  if (calendarList && calendarLoading) {
+    (async function () {
+      try {
+        var sessionsSnap = await getDocs(query(collection(db, 'sessions'), where('ecoutantId', '==', user.uid)));
+        var sessions = sessionsSnap.docs
+          .map(function (d) { return { id: d.id, data: d.data() }; })
+          .filter(function (s) { return s.data.status !== 'cancelled'; });
+        var now = new Date();
+        sessions.sort(function (a, b) {
+          var aStart = a.data.startAt && a.data.startAt.toDate ? a.data.startAt.toDate() : new Date(a.data.startAt);
+          var bStart = b.data.startAt && b.data.startAt.toDate ? b.data.startAt.toDate() : new Date(b.data.startAt);
+          return aStart.getTime() - bStart.getTime();
+        });
+        calendarLoading.style.display = 'none';
+        if (sessions.length === 0) {
+          if (calendarEmpty) calendarEmpty.style.display = 'block';
+          return;
+        }
+        if (calendarEmpty) calendarEmpty.style.display = 'none';
+        var callerIds = sessions.map(function (s) { return s.data.appelantId; }).filter(Boolean);
+        var callerPseudos = {};
+        await Promise.all(callerIds.map(async function (uid) {
+          if (callerPseudos[uid]) return;
+          var u = await getDoc(doc(db, 'users', uid));
+          callerPseudos[uid] = u.exists() ? (u.data().pseudo || 'Appelant') : 'Appelant';
+        }));
+        calendarList.innerHTML = sessions.map(function (s) {
+          var startAt = s.data.startAt && s.data.startAt.toDate ? s.data.startAt.toDate() : new Date(s.data.startAt);
+          var endAt = s.data.endAt && s.data.endAt.toDate ? s.data.endAt.toDate() : new Date(s.data.endAt);
+          var dateStr = formatDateFr(startAt.getFullYear() + '-' + String(startAt.getMonth() + 1).padStart(2, '0') + '-' + String(startAt.getDate()).padStart(2, '0'));
+          var timeStr = ('0' + startAt.getHours()).slice(-2) + 'h' + ('0' + startAt.getMinutes()).slice(-2) + ' – ' + ('0' + endAt.getHours()).slice(-2) + 'h' + ('0' + endAt.getMinutes()).slice(-2);
+          var pseudo = callerPseudos[s.data.appelantId] || 'Appelant';
+          var status = s.data.status || '';
+          var statusLabel = status === 'paid' ? 'Payé' : status === 'confirmed' ? 'Confirmé' : status === 'pending_payment' ? 'En attente paiement' : status;
+          var canJoinAnytime = status === 'paid' || status === 'confirmed';
+          var joinUrl = 'call.html?sessionId=' + encodeURIComponent(s.id);
+          return '<li class="calendar-item">' +
+            '<span class="calendar-date">' + dateStr + '</span> ' +
+            '<span class="calendar-time">' + timeStr + '</span> — ' +
+            '<span class="calendar-pseudo">' + pseudo + '</span> ' +
+            '<span class="calendar-status">' + statusLabel + '</span> ' +
+            (canJoinAnytime ? '<a href="' + joinUrl + '" class="btn btn-primary btn-small">Rejoindre l\'appel</a>' : '') +
+            '</li>';
+        }).join('');
+      } catch (err) {
+        calendarLoading.textContent = 'Erreur lors du chargement des rendez-vous.';
+        console.error(err);
+      }
+    })();
+  }
 
   var availability = Array.isArray(data.availability) ? data.availability : [];
   var availabilityDates = Array.isArray(data.availabilityDates) ? data.availabilityDates : [];

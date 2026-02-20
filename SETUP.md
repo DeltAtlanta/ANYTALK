@@ -70,12 +70,10 @@ Puis ouvrez : http://localhost:8000
 
 ## Étape 5 : Configuration Whereby (optionnel)
 
-1. Créez un compte sur [whereby.com](https://whereby.com)
-2. Obtenez votre subdomain
-3. Dans `call.js`, ligne ~100, remplacez :
-   ```javascript
-   const subdomain = 'votre-subdomain';
-   ```
+1. Créez un compte sur [whereby.com](https://whereby.com) (produit Embedded).
+2. Obtenez votre subdomain (Configure / paramètres d’organisation).
+3. Dans **`firebase-config.js`**, remplacez `"votre-subdomain"` dans `wherebyConfig.subdomain` par votre subdomain (ex. `"anytalk"`).
+4. Voir **WHEREBY.md** pour le détail.
 
 ## ✅ Test
 

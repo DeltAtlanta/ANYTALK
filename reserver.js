@@ -140,15 +140,24 @@ onAuthStateChanged(auth, async (user) => {
 
     if (loadingEl) loadingEl.style.display = 'none';
     if (contentEl) contentEl.style.display = 'block';
+    var pseudoLabel = data.pseudo || 'Écoutant';
+    var breadcrumbEl = document.getElementById('reserver-breadcrumb-current');
+    if (breadcrumbEl) breadcrumbEl.textContent = 'Réserver avec ' + pseudoLabel;
     if (cardEl) {
-      cardEl.innerHTML = '<strong>' + (data.pseudo || 'Écoutant') + '</strong><br>' +
+      cardEl.innerHTML = '<strong>' + pseudoLabel + '</strong><br>' +
         (data.experience_public ? '<span class="form-hint">' + (data.experience_public || '').slice(0, 80) + '</span><br>' : '') +
         (data.bio ? '<p class="form-hint" style="margin-top:0.5rem">' + data.bio + '</p>' : '');
     }
 
+    var noSlotsEl = document.getElementById('reserver-no-slots');
     if (slots.length === 0) {
-      if (slotsEl) slotsEl.innerHTML = '<p class="form-hint">Aucun créneau disponible sur les ' + NUM_DAYS_RESERVATION + ' prochains jours. L’écoutant peut ajouter des créneaux récurrents ou à date fixe dans son planning.</p>';
+      if (slotsEl) slotsEl.innerHTML = '';
+      if (noSlotsEl) {
+        noSlotsEl.textContent = 'Aucun créneau disponible sur les ' + NUM_DAYS_RESERVATION + ' prochains jours. L’écoutant peut ajouter des créneaux dans son planning.';
+        noSlotsEl.style.display = 'block';
+      }
     } else {
+      if (noSlotsEl) noSlotsEl.style.display = 'none';
       slotsEl.innerHTML = slots.map(function (slot, i) {
         return '<button type="button" class="slot-btn" data-i="' + i + '">' + formatSlot(slot) + '</button>';
       }).join('');
@@ -189,6 +198,8 @@ onAuthStateChanged(auth, async (user) => {
               cancelUrl: cancelUrl
             });
             if (result.data && result.data.url) {
+              sessionStorage.setItem('anytalk_ecoutant_id', ecoutantId);
+              sessionStorage.setItem('anytalk_session_id', sessionId);
               window.location.href = result.data.url;
               return;
             }

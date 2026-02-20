@@ -46,13 +46,18 @@ if (sendResetBtn && resetEmailInput) {
   });
 }
 
+var submitBtn = form ? form.querySelector('button[type="submit"]') : null;
 if (form) {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = form.querySelector('#email').value.trim();
     const password = form.querySelector('#password').value;
     if (!email || !password) return;
-    errorEl.textContent = '';
+    if (errorEl) errorEl.textContent = '';
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Connexion…';
+    }
     try {
       const { user } = await signInWithEmailAndPassword(auth, email, password);
       if (user.uid === ADMIN_UID) {
@@ -61,9 +66,16 @@ if (form) {
         window.location.href = 'dashboard.html';
       }
     } catch (err) {
-      errorEl.textContent = err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found'
-        ? 'Email ou mot de passe incorrect.'
-        : (err.message || 'Erreur de connexion.');
+      if (errorEl) {
+        errorEl.textContent = err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found'
+          ? 'Email ou mot de passe incorrect.'
+          : (err.message || 'Erreur de connexion.');
+        errorEl.setAttribute('role', 'alert');
+      }
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Se connecter';
+      }
     }
   });
 }

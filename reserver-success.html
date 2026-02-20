@@ -22,10 +22,14 @@
     </nav>
     <main class="dashboard-container">
         <div class="container container--narrow">
-            <div id="success-msg" class="profile-card" style="display:none;">
+            <div id="success-msg" class="profile-card success-card" style="display:none;">
                 <h2 class="page-title">Réservation confirmée</h2>
                 <p class="form-hint">Votre paiement a bien été enregistré. Votre créneau est réservé.</p>
-                <a href="appelant.html" class="btn btn-primary" style="margin-top:1rem">Retour aux écoutants</a>
+                <p class="next-step-label">Prochaine étape</p>
+                <div class="success-actions">
+                    <span class="call-link-wrap"></span>
+                    <a href="appelant.html" class="btn btn-secondary">Retour aux écoutants</a>
+                </div>
             </div>
             <div id="success-loading" class="reserver-loading">Confirmation en cours...</div>
             <div id="success-error" class="error-message" style="display:none;"></div>

@@ -15,7 +15,7 @@
     <div class="call-container">
         <!-- Header -->
         <div class="call-header">
-            <button id="close-btn" class="close-btn">✕</button>
+            <button type="button" id="close-btn" class="close-btn" aria-label="Fermer et revenir">✕</button>
             <div class="call-info">
                 <h2 id="call-title">Appel</h2>
                 <p id="call-subtitle">Chargement...</p>
@@ -27,12 +27,13 @@
         <div class="call-content">
             <!-- Écran de préparation -->
             <div id="call-prepare" class="call-screen">
+                <p class="call-steps" aria-hidden="true">1. Vérifiez les infos ci-dessous — 2. Cliquez pour rejoindre l’appel</p>
                 <div class="call-avatar" id="call-avatar">👤</div>
                 <h3 id="call-name">Chargement...</h3>
                 <p id="call-details">Chargement...</p>
                 <div id="call-tags" class="call-tags"></div>
-                <button id="start-call-btn" class="btn btn-primary btn-large">
-                    📞 Démarrer l'appel
+                <button id="start-call-btn" class="btn btn-primary btn-large" type="button">
+                    📞 Rejoindre l’appel
                 </button>
             </div>
 

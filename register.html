@@ -24,7 +24,7 @@
             <a href="index.html" class="back-link">← Retour</a>
             <div class="auth-header">
                 <h1>Inscription</h1>
-                <p class="form-hint" style="margin-top:0.5rem;">Les <strong>appelants</strong> restent anonymes (email + mot de passe). Les <strong>écoutants</strong> remplissent un formulaire complet (infos + pièces justificatives).</p>
+                <p class="form-hint" style="margin-top:0.5rem;">Choisissez votre rôle : <strong>appelant</strong> (simple et anonyme) ou <strong>écoutant</strong> (formulaire + pièces justificatives).</p>
             </div>
             <form id="register-form">
                 <div class="form-group">
@@ -40,20 +40,36 @@
                         </label>
                     </div>
                 </div>
+                <div class="form-group">
+                    <label for="email">Email <span class="required">*</span></label>
+                    <input type="email" id="email" required placeholder="votre@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="password">Mot de passe <span class="required">*</span></label>
+                    <input type="password" id="password" required minlength="6" placeholder="6 caractères minimum">
+                </div>
                 <div id="register-appelant-fields">
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" required placeholder="votre@email.com">
-                    </div>
-                    <div class="form-group">
-                        <label for="password">Mot de passe</label>
-                        <input type="password" id="password" required minlength="6" placeholder="6 caractères minimum">
-                    </div>
                     <button type="submit" class="btn btn-primary btn-full">Créer mon compte</button>
                 </div>
-                <div id="register-ecoutant-redirect" style="display:none;">
-                    <p class="form-hint">L'inscription écoutant est indisponible pour le moment.</p>
-                    <a href="index.html" class="btn btn-primary btn-full" style="margin-top:0.75rem; text-align:center; text-decoration:none;">Retour à l'accueil</a>
+                <div id="register-ecoutant-fields" style="display:none;">
+                    <p class="form-hint" style="margin-bottom:1rem;">Vos informations et pièces jointes sont envoyées à l’équipe pour validation. Seul le pseudo et la bio seront visibles par les appelants.</p>
+                    <div class="form-group">
+                        <label for="pseudo">Pseudo <span class="required">*</span></label>
+                        <input type="text" id="pseudo" placeholder="Ex. Écoute_F247">
+                    </div>
+                    <div class="form-group">
+                        <label for="telephone">Téléphone <span class="required">*</span></label>
+                        <input type="tel" id="telephone" placeholder="06 12 34 56 78">
+                    </div>
+                    <div class="form-group">
+                        <label for="carte_identite">Carte d’identité (image ou PDF) <span class="required">*</span></label>
+                        <input type="file" id="carte_identite" accept="image/*,application/pdf">
+                    </div>
+                    <div class="form-group">
+                        <label for="diplome">Diplôme ou CV (image ou PDF) <span class="required">*</span></label>
+                        <input type="file" id="diplome" accept="image/*,application/pdf">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Créer mon compte écoutant</button>
                 </div>
             </form>
             <p class="auth-footer">Déjà un compte ? <a href="login.html">Se connecter</a></p>
@@ -66,7 +82,7 @@
         var typeAppelant = document.getElementById('type-appelant');
         var typeEcoutant = document.getElementById('type-ecoutant');
         var blocAppelant = document.getElementById('register-appelant-fields');
-        var blocEcoutant = document.getElementById('register-ecoutant-redirect');
+        var blocEcoutant = document.getElementById('register-ecoutant-fields');
         function update() {
           var isEcoutant = typeEcoutant && typeEcoutant.checked;
           if (blocAppelant) blocAppelant.style.display = isEcoutant ? 'none' : 'block';
@@ -74,9 +90,6 @@
         }
         if (typeAppelant) typeAppelant.addEventListener('change', update);
         if (typeEcoutant) typeEcoutant.addEventListener('change', update);
-        if (form) form.addEventListener('submit', function (e) {
-          if (typeEcoutant && typeEcoutant.checked) { e.preventDefault(); return; }
-        });
         update();
       })();
     </script>

@@ -79,6 +79,8 @@ onAuthStateChanged(auth, async (user) => {
     });
   }
 
+  if (matchesGrid) matchesGrid.innerHTML = '<p class="form-hint loading-dots">Chargement des écoutants…</p>';
+
   let allEcoutants = [];
   try {
     const q = query(collection(db, 'users'), where('badge.type', '==', 'ecoutant'));
@@ -92,9 +94,14 @@ onAuthStateChanged(auth, async (user) => {
     const search = searchInput ? searchInput.value.trim() : '';
     const filtered = filterList(allEcoutants, search);
     if (matchesGrid) {
-      matchesGrid.innerHTML = filtered.length
-        ? filtered.map(renderEcoutantCard).join('')
-        : '<p class="form-hint">Aucun écoutant trouvé.</p>';
+      if (filtered.length) {
+        matchesGrid.innerHTML = filtered.map(renderEcoutantCard).join('');
+      } else {
+        matchesGrid.innerHTML = '<div class="empty-state">' +
+          '<p class="empty-state-title">Aucun écoutant disponible pour le moment</p>' +
+          '<p class="form-hint">Les écoutants apparaissent ici une fois leur profil validé par l’équipe. Revenez plus tard ou essayez une autre recherche.</p>' +
+          '</div>';
+      }
     }
   }
 

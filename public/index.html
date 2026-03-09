@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Notes musicales – Choisir un titre et mettre une note</title>
+    <meta name="description" content="Choisissez une musique ou un album et donnez-lui une note." />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="top-nav">
+        <div class="brand">
+          <span class="brand-name">Notes musicales</span>
+        </div>
+        <nav class="nav-links">
+          <button class="nav-link is-active" data-view="home">Noter</button>
+          <button class="nav-link" data-view="my-ratings">Mes notes</button>
+        </nav>
+        <div class="nav-right">
+          <div class="search-wrap">
+            <input id="searchInput" type="search" placeholder="Rechercher un morceau ou un album…" autocomplete="off" />
+          </div>
+          <div class="user-wrap" id="userWrap">
+            <span class="user-name" id="userName">Non connecté</span>
+            <button class="btn small" id="btnLogin">Entrer</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="main-content">
+        <!-- Vue principale : choisir et noter -->
+        <section class="view is-visible" id="viewHome">
+          <div class="hero-simple">
+            <h1>Choisissez une musique ou un album et mettez une note dessus.</h1>
+            <p class="hero-sub">Sélectionnez un titre dans la liste, donnez une note de 1 à 10 et un commentaire si vous le souhaitez.</p>
+          </div>
+
+          <div class="search-result" id="searchResult"></div>
+
+          <section class="section section-spotify" id="sectionSpotify">
+            <h2>Ma bibliothèque Spotify</h2>
+            <div id="spotifyConnectBlock" class="spotify-connect">
+              <p>Connectez votre compte Spotify pour afficher vos titres sauvegardés (titres et pochettes).</p>
+              <a id="spotifyConnectBtn" class="btn primary" href="#">Connecter Spotify</a>
+            </div>
+            <div id="spotifyLibraryBlock" class="spotify-library" style="display: none;">
+              <ul class="spotify-list" id="spotifyList"></ul>
+              <button type="button" class="btn ghost" id="spotifyLoadMore">Charger plus</button>
+            </div>
+          </section>
+
+          <section class="section" id="sectionTracks">
+            <h2>Morceaux</h2>
+            <ul class="item-list" id="trackList"></ul>
+          </section>
+
+          <section class="section" id="sectionAlbums">
+            <h2>Albums</h2>
+            <ul class="item-list" id="albumList"></ul>
+          </section>
+        </section>
+
+        <!-- Vue Mes notes -->
+        <section class="view" id="viewMyRatings">
+          <div class="page-title">
+            <h1>Mes notes</h1>
+            <p id="myRatingsIntro">Connectez-vous pour voir les titres que vous avez notés.</p>
+          </div>
+          <div class="login-block" id="loginBlock">
+            <form id="loginForm" class="login-form">
+              <input type="text" name="username" placeholder="Votre pseudo" required />
+              <button class="btn primary" type="submit">Entrer</button>
+            </form>
+          </div>
+          <ul class="ratings-list" id="myRatingsList"></ul>
+        </section>
+      </main>
+    </div>
+
+    <!-- Modale : noter un titre -->
+    <dialog id="rateDialog" class="rate-dialog">
+      <div class="rate-dialog-inner">
+        <h3 id="rateDialogTitle">Noter ce titre</h3>
+        <p class="rate-dialog-meta" id="rateDialogMeta"></p>
+        <form id="rateForm">
+          <input type="hidden" name="type" id="rateType" value="track" />
+          <input type="hidden" name="trackId" id="rateTrackId" value="" />
+          <input type="hidden" name="albumId" id="rateAlbumId" value="" />
+          <label>
+            Note (1–10)
+            <div class="score-row">
+              <input type="range" name="score" min="1" max="10" step="1" value="7" id="rateScore" />
+              <span id="rateScoreValue">7</span>/10
+            </div>
+          </label>
+          <label>
+            Commentaire (optionnel)
+            <textarea name="comment" rows="3" placeholder="Votre avis…"></textarea>
+          </label>
+          <div class="rate-actions">
+            <button type="button" class="btn ghost" id="rateCancel">Annuler</button>
+            <button type="submit" class="btn primary">Enregistrer la note</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>

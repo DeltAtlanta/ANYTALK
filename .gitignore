@@ -1,0 +1,4 @@
+node_modules/
+music.db
+.env
+*.log

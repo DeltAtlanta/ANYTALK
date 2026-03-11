@@ -21,11 +21,26 @@ const api = {
 let currentUser = null;
 let tracks = [];
 let albums = [];
+let spotifyItems = [];
+let spotifyAlbumsItems = [];
+let spotifyLibraryOffset = 0;
+let spotifyLibraryTotal = 0;
+let spotifyAlbumsOffset = 0;
+let spotifyAlbumsTotal = 0;
 
+const viewLanding = document.getElementById('viewLanding');
+const viewApp = document.getElementById('viewApp');
+const landingSpotifyBtn = document.getElementById('landingSpotifyBtn');
+const navLinks = document.getElementById('navLinks');
+const navRight = document.getElementById('navRight');
+const userName = document.getElementById('userName');
+const btnLogout = document.getElementById('btnLogout');
+const spotifyList = document.getElementById('spotifyList');
+const spotifyLoadMoreBtn = document.getElementById('spotifyLoadMore');
+const spotifyAlbumsList = document.getElementById('spotifyAlbumsList');
+const spotifyAlbumsLoadMoreBtn = document.getElementById('spotifyAlbumsLoadMore');
 const trackListEl = document.getElementById('trackList');
 const albumListEl = document.getElementById('albumList');
-const searchInput = document.getElementById('searchInput');
-const searchResult = document.getElementById('searchResult');
 const rateDialog = document.getElementById('rateDialog');
 const rateForm = document.getElementById('rateForm');
 const rateDialogTitle = document.getElementById('rateDialogTitle');
@@ -37,62 +52,24 @@ const rateScore = document.getElementById('rateScore');
 const rateScoreValue = document.getElementById('rateScoreValue');
 const myRatingsList = document.getElementById('myRatingsList');
 const myRatingsIntro = document.getElementById('myRatingsIntro');
-const loginBlock = document.getElementById('loginBlock');
-const loginForm = document.getElementById('loginForm');
-const userName = document.getElementById('userName');
-const btnLogin = document.getElementById('btnLogin');
-const sectionTracks = document.getElementById('sectionTracks');
-const sectionAlbums = document.getElementById('sectionAlbums');
-const spotifyConnectBlock = document.getElementById('spotifyConnectBlock');
-const spotifyLibraryBlock = document.getElementById('spotifyLibraryBlock');
-const spotifyList = document.getElementById('spotifyList');
-const spotifyConnectBtn = document.getElementById('spotifyConnectBtn');
-const spotifyLoadMoreBtn = document.getElementById('spotifyLoadMore');
 
-let spotifyLibraryOffset = 0;
-let spotifyLibraryTotal = 0;
-let spotifyItems = [];
+function showLanding(show) {
+  viewLanding.classList.toggle('is-visible', show);
+  viewApp.classList.toggle('is-visible', !show);
+  navLinks.style.display = show ? 'none' : 'flex';
+  navRight.style.display = show ? 'none' : 'flex';
+}
 
 function showView(viewId) {
-  document.querySelectorAll('.view').forEach((v) => v.classList.remove('is-visible'));
+  document.querySelectorAll('#viewApp .view').forEach((v) => v.classList.remove('is-visible'));
   const view = document.getElementById(viewId);
   if (view) view.classList.add('is-visible');
   document.querySelectorAll('.nav-link').forEach((b) => b.classList.toggle('is-active', b.dataset.view === viewId));
 }
 
 function ensureUser() {
-  if (!currentUser) {
-    alert('Connectez-vous pour noter un titre.');
-    showView('viewMyRatings');
-    return false;
-  }
+  if (!currentUser) return false;
   return true;
-}
-
-function renderTrackItem(t, fromSearch = false) {
-  const li = document.createElement('li');
-  li.innerHTML = `
-    <div class="item-info">
-      <p class="item-title">${escapeHtml(t.title)}</p>
-      <p class="item-meta">${escapeHtml(t.artist_name || 'Artiste inconnu')}${t.genre ? ' · ' + escapeHtml(t.genre) : ''}</p>
-    </div>
-    <button type="button" class="btn btn-noter primary small" data-type="track" data-id="${t.id}" data-title="${escapeAttr(t.title)}" data-meta="${escapeAttr((t.artist_name || '') + (t.genre ? ' · ' + t.genre : ''))}">Noter</button>
-  `;
-  li.querySelector('.btn-noter').addEventListener('click', () => openRateModal('track', t));
-  return li;
-}
-
-function renderAlbumItem(a, fromSearch = false) {
-  const li = document.createElement('li');
-  li.innerHTML = `
-    <div class="item-info">
-      <p class="item-title">${escapeHtml(a.title)}</p>
-      <p class="item-meta">${escapeHtml(a.artist_name || 'Artiste inconnu')}${a.release_year ? ' · ' + a.release_year : ''}${a.genre ? ' · ' + escapeHtml(a.genre) : ''}</p>
-    </div>
-    <button type="button" class="btn btn-noter primary small" data-type="album" data-id="${a.id}" data-title="${escapeAttr(a.title)}" data-meta="${escapeAttr((a.artist_name || '') + (a.release_year ? ' · ' + a.release_year : ''))}">Noter</button>
-  `;
-  li.querySelector('.btn-noter').addEventListener('click', () => openRateModal('album', a));
-  return li;
 }
 
 function escapeHtml(s) {
@@ -116,7 +93,7 @@ function openRateModal(type, item) {
   rateType.value = type;
   rateTrackId.value = type === 'track' ? item.id : '';
   rateAlbumId.value = type === 'album' ? item.id : '';
-  rateDialogTitle.textContent = item.title;
+  rateDialogTitle.textContent = item.title || item.name;
   rateDialogMeta.textContent =
     type === 'track'
       ? [item.artist_name, item.genre].filter(Boolean).join(' · ') || 'Morceau'
@@ -127,71 +104,136 @@ function openRateModal(type, item) {
   rateDialog.showModal();
 }
 
-function renderLists() {
+function renderTrackItem(t) {
+  const li = document.createElement('li');
+  li.innerHTML = `
+    <div class="item-info">
+      <p class="item-title">${escapeHtml(t.title)}</p>
+      <p class="item-meta">${escapeHtml(t.artist_name || 'Artiste inconnu')}${t.genre ? ' · ' + escapeHtml(t.genre) : ''}</p>
+    </div>
+    <button type="button" class="btn btn-noter primary small">Noter</button>
+  `;
+  li.querySelector('.btn-noter').addEventListener('click', () => openRateModal('track', t));
+  return li;
+}
+
+function renderAlbumItem(a) {
+  const li = document.createElement('li');
+  li.innerHTML = `
+    <div class="item-info">
+      <p class="item-title">${escapeHtml(a.title)}</p>
+      <p class="item-meta">${escapeHtml(a.artist_name || 'Artiste inconnu')}${a.release_year ? ' · ' + a.release_year : ''}</p>
+    </div>
+    <button type="button" class="btn btn-noter primary small">Noter</button>
+  `;
+  li.querySelector('.btn-noter').addEventListener('click', () => openRateModal('album', a));
+  return li;
+}
+
+function renderSpotifyTracks() {
+  spotifyList.innerHTML = '';
+  spotifyItems.forEach((item) => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      ${item.cover ? `<img class="spotify-cover" src="${escapeAttr(item.cover)}" alt="" loading="lazy" />` : '<div class="spotify-cover spotify-cover-placeholder"></div>'}
+      <div class="spotify-info">
+        <p class="spotify-title">${escapeHtml(item.name)}</p>
+        <p class="spotify-artist">${escapeHtml(item.artists)}</p>
+        <button type="button" class="btn btn-noter-spotify primary small">Noter</button>
+      </div>
+    `;
+    li.querySelector('.btn-noter-spotify').addEventListener('click', () => noterSpotifyTrack(item));
+    spotifyList.appendChild(li);
+  });
+  spotifyLoadMoreBtn.style.display = spotifyItems.length < spotifyLibraryTotal ? 'block' : 'none';
+}
+
+function renderSpotifyAlbums() {
+  spotifyAlbumsList.innerHTML = '';
+  spotifyAlbumsItems.forEach((item) => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      ${item.cover ? `<img class="spotify-cover" src="${escapeAttr(item.cover)}" alt="" loading="lazy" />` : '<div class="spotify-cover spotify-cover-placeholder"></div>'}
+      <div class="spotify-info">
+        <p class="spotify-title">${escapeHtml(item.name)}</p>
+        <p class="spotify-artist">${escapeHtml(item.artists)}${item.releaseYear ? ' · ' + item.releaseYear : ''}</p>
+        <button type="button" class="btn btn-noter-spotify primary small">Noter</button>
+      </div>
+    `;
+    li.querySelector('.btn-noter-spotify').addEventListener('click', () => noterSpotifyAlbum(item));
+    spotifyAlbumsList.appendChild(li);
+  });
+  spotifyAlbumsLoadMoreBtn.style.display = spotifyAlbumsItems.length < spotifyAlbumsTotal ? 'block' : 'none';
+}
+
+async function noterSpotifyTrack(item) {
+  if (!ensureUser()) return;
+  try {
+    const { track } = await api.post('/api/spotify/track-from-spotify', {
+      userId: currentUser.id,
+      name: item.name,
+      artists: item.artists,
+      coverUrl: item.cover || null
+    });
+    openRateModal('track', track);
+  } catch {
+    alert('Erreur lors de l’ajout du titre.');
+  }
+}
+
+async function noterSpotifyAlbum(item) {
+  if (!ensureUser()) return;
+  try {
+    const { album } = await api.post('/api/spotify/album-from-spotify', {
+      userId: currentUser.id,
+      name: item.name,
+      artists: item.artists,
+      coverUrl: item.cover || null,
+      releaseYear: item.releaseYear || null
+    });
+    openRateModal('album', album);
+  } catch {
+    alert('Erreur lors de l’ajout de l’album.');
+  }
+}
+
+async function loadSpotifyLibrary(offset) {
+  if (!currentUser) return;
+  try {
+    const data = await api.get(`/api/spotify/library?userId=${currentUser.id}&offset=${offset}&limit=50`);
+    if (offset === 0) spotifyItems = [];
+    spotifyItems = spotifyItems.concat(data.items || []);
+    spotifyLibraryTotal = data.total ?? 0;
+    spotifyLibraryOffset = spotifyItems.length;
+    renderSpotifyTracks();
+  } catch (e) {
+    spotifyList.innerHTML = '<li class="empty-msg">Impossible de charger vos titres likés.</li>';
+    spotifyLoadMoreBtn.style.display = 'none';
+  }
+}
+
+async function loadSpotifyAlbums(offset) {
+  if (!currentUser) return;
+  try {
+    const data = await api.get(`/api/spotify/albums?userId=${currentUser.id}&offset=${offset}&limit=50`);
+    if (offset === 0) spotifyAlbumsItems = [];
+    spotifyAlbumsItems = spotifyAlbumsItems.concat(data.items || []);
+    spotifyAlbumsTotal = data.total ?? 0;
+    spotifyAlbumsOffset = spotifyAlbumsItems.length;
+    renderSpotifyAlbums();
+  } catch (e) {
+    spotifyAlbumsList.innerHTML = '<li class="empty-msg">Impossible de charger vos albums likés.</li>';
+    spotifyAlbumsLoadMoreBtn.style.display = 'none';
+  }
+}
+
+function renderCatalogueLists() {
   trackListEl.innerHTML = '';
   albumListEl.innerHTML = '';
   tracks.forEach((t) => trackListEl.appendChild(renderTrackItem(t)));
   albums.forEach((a) => albumListEl.appendChild(renderAlbumItem(a)));
-  if (tracks.length === 0) {
-    const empty = document.createElement('li');
-    empty.className = 'empty-msg';
-    empty.textContent = 'Aucun morceau pour le moment.';
-    trackListEl.appendChild(empty);
-  }
-  if (albums.length === 0) {
-    const empty = document.createElement('li');
-    empty.className = 'empty-msg';
-    empty.textContent = 'Aucun album pour le moment.';
-    albumListEl.appendChild(empty);
-  }
-}
-
-function filterLists(q) {
-  const lower = q.toLowerCase().trim();
-  if (!lower) {
-    renderLists();
-    searchResult.classList.remove('is-visible');
-    sectionTracks.style.display = '';
-    sectionAlbums.style.display = '';
-    return;
-  }
-  const filteredTracks = tracks.filter(
-    (t) =>
-      (t.title && t.title.toLowerCase().includes(lower)) ||
-      (t.artist_name && t.artist_name.toLowerCase().includes(lower))
-  );
-  const filteredAlbums = albums.filter(
-    (a) =>
-      (a.title && a.title.toLowerCase().includes(lower)) ||
-      (a.artist_name && a.artist_name.toLowerCase().includes(lower))
-  );
-  searchResult.classList.add('is-visible');
-  searchResult.innerHTML = '';
-  if (filteredTracks.length > 0) {
-    const sec = document.createElement('div');
-    sec.className = 'result-section';
-    sec.innerHTML = '<h3>Morceaux</h3>';
-    const ul = document.createElement('ul');
-    ul.className = 'item-list';
-    filteredTracks.forEach((t) => ul.appendChild(renderTrackItem(t)));
-    sec.appendChild(ul);
-    searchResult.appendChild(sec);
-  }
-  if (filteredAlbums.length > 0) {
-    const sec = document.createElement('div');
-    sec.className = 'result-section';
-    sec.innerHTML = '<h3>Albums</h3>';
-    const ul = document.createElement('ul');
-    ul.className = 'item-list';
-    filteredAlbums.forEach((a) => ul.appendChild(renderAlbumItem(a)));
-    sec.appendChild(ul);
-    searchResult.appendChild(sec);
-  }
-  if (filteredTracks.length === 0 && filteredAlbums.length === 0) {
-    searchResult.innerHTML = '<p class="empty-msg">Aucun résultat.</p>';
-  }
-  sectionTracks.style.display = lower ? 'none' : '';
-  sectionAlbums.style.display = lower ? 'none' : '';
+  if (tracks.length === 0) trackListEl.innerHTML = '<li class="empty-msg">Aucun morceau dans le catalogue.</li>';
+  if (albums.length === 0) albumListEl.innerHTML = '<li class="empty-msg">Aucun album dans le catalogue.</li>';
 }
 
 async function loadTracksAndAlbums() {
@@ -202,34 +244,25 @@ async function loadTracksAndAlbums() {
     ]);
     tracks = tRes.tracks || [];
     albums = aRes.albums || [];
-    renderLists();
+    renderCatalogueLists();
   } catch {
-    trackListEl.innerHTML = '<li class="empty-msg">Impossible de charger les morceaux.</li>';
-    albumListEl.innerHTML = '<li class="empty-msg">Impossible de charger les albums.</li>';
+    trackListEl.innerHTML = '<li class="empty-msg">Impossible de charger le catalogue.</li>';
+    albumListEl.innerHTML = '<li class="empty-msg">Impossible de charger le catalogue.</li>';
   }
 }
 
 function updateUserUI() {
   if (currentUser) {
     userName.textContent = currentUser.username;
-    btnLogin.textContent = 'Changer';
-    myRatingsIntro.textContent = 'Les titres que vous avez notés.';
-    loginBlock.style.display = 'none';
+    showLanding(false);
   } else {
-    userName.textContent = 'Non connecté';
-    btnLogin.textContent = 'Entrer';
-    myRatingsIntro.textContent = 'Connectez-vous pour voir les titres que vous avez notés.';
-    loginBlock.style.display = 'block';
-    myRatingsList.innerHTML = '';
+    showLanding(true);
   }
 }
 
 async function loadMyRatings() {
   myRatingsList.innerHTML = '';
-  if (!currentUser) {
-    updateUserUI();
-    return;
-  }
+  if (!currentUser) return;
   try {
     const data = await api.get(`/api/users/${currentUser.id}/ratings`);
     const list = data.ratings || [];
@@ -251,7 +284,6 @@ async function loadMyRatings() {
   } catch {
     myRatingsList.innerHTML = '<li class="empty-msg">Impossible de charger vos notes.</li>';
   }
-  updateUserUI();
 }
 
 function restoreUser() {
@@ -265,108 +297,75 @@ function restoreUser() {
   updateUserUI();
 }
 
-async function checkSpotifyStatus() {
-  if (!currentUser) {
-    spotifyConnectBlock.style.display = 'block';
-    spotifyLibraryBlock.style.display = 'none';
-    spotifyConnectBtn.href = '#';
-    spotifyConnectBtn.textContent = 'Connectez-vous d’abord (onglet Mes notes)';
-    return;
-  }
-  spotifyConnectBtn.textContent = 'Connecter Spotify';
-  spotifyConnectBtn.href = `/api/spotify/auth?userId=${currentUser.id}`;
-  try {
-    const { connected } = await api.get(`/api/spotify/status?userId=${currentUser.id}`);
-    if (connected) {
-      spotifyConnectBlock.style.display = 'none';
-      spotifyLibraryBlock.style.display = 'block';
+async function initFromSpotifyCallback() {
+  const params = new URLSearchParams(window.location.search);
+  const userId = params.get('userId');
+  if (params.get('spotify') === 'ok' && userId) {
+    window.history.replaceState({}, '', window.location.pathname);
+    try {
+      const data = await api.get(`/api/users/${userId}`);
+      currentUser = data.user;
+      localStorage.setItem('anytalk:user', JSON.stringify(currentUser));
+      updateUserUI();
       spotifyItems = [];
-      spotifyLibraryOffset = 0;
+      spotifyAlbumsItems = [];
       await loadSpotifyLibrary(0);
-    } else {
-      spotifyConnectBlock.style.display = 'block';
-      spotifyLibraryBlock.style.display = 'none';
-    }
-  } catch {
-    spotifyConnectBlock.style.display = 'block';
-    spotifyLibraryBlock.style.display = 'none';
+      await loadSpotifyAlbums(0);
+      loadTracksAndAlbums();
+    } catch (_) {}
+    return true;
   }
-}
-
-async function loadSpotifyLibrary(offset) {
-  if (!currentUser) return;
-  try {
-    const data = await api.get(
-      `/api/spotify/library?userId=${currentUser.id}&offset=${offset}&limit=50`
-    );
-    if (offset === 0) spotifyItems = [];
-    spotifyItems = spotifyItems.concat(data.items || []);
-    spotifyLibraryTotal = data.total ?? 0;
-    spotifyLibraryOffset = spotifyItems.length;
-    renderSpotifyList();
-    spotifyLoadMoreBtn.style.display =
-      spotifyItems.length < spotifyLibraryTotal ? 'block' : 'none';
-  } catch (e) {
-    spotifyList.innerHTML = '<li class="empty-msg">Impossible de charger la bibliothèque Spotify.</li>';
-    spotifyLoadMoreBtn.style.display = 'none';
+  if (params.get('spotify') === 'error') {
+    window.history.replaceState({}, '', window.location.pathname);
+    alert('Connexion Spotify annulée ou erreur.');
   }
-}
-
-function renderSpotifyList() {
-  spotifyList.innerHTML = '';
-  spotifyItems.forEach((item) => {
-    const li = document.createElement('li');
-    li.innerHTML = `
-      ${item.cover ? `<img class="spotify-cover" src="${escapeAttr(item.cover)}" alt="" loading="lazy" />` : '<div class="spotify-cover spotify-cover-placeholder"></div>'}
-      <div class="spotify-info">
-        <p class="spotify-title">${escapeHtml(item.name)}</p>
-        <p class="spotify-artist">${escapeHtml(item.artists)}</p>
-        <button type="button" class="btn btn-noter-spotify primary small">Noter</button>
-      </div>
-    `;
-    li.querySelector('.btn-noter-spotify').addEventListener('click', () => noterSpotifyTrack(item));
-    spotifyList.appendChild(li);
-  });
-}
-
-async function noterSpotifyTrack(item) {
-  if (!ensureUser()) return;
-  try {
-    const { track } = await api.post('/api/spotify/track-from-spotify', {
-      userId: currentUser.id,
-      name: item.name,
-      artists: item.artists,
-      coverUrl: item.cover || null
-    });
-    openRateModal('track', track);
-  } catch {
-    alert('Erreur lors de l’ajout du titre.');
-  }
+  return false;
 }
 
 function init() {
   restoreUser();
-  loadTracksAndAlbums();
 
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('spotify') === 'ok') {
-    window.history.replaceState({}, '', window.location.pathname);
-    if (currentUser) checkSpotifyStatus();
-  } else if (params.get('spotify') === 'error') {
-    window.history.replaceState({}, '', window.location.pathname);
-    alert('Connexion Spotify annulée ou erreur.');
+  const spotifyAuthPath = '/api/spotify/auth';
+  if (window.location.protocol !== 'file:') {
+    landingSpotifyBtn.href = window.location.origin + spotifyAuthPath;
   }
-  if (currentUser) checkSpotifyStatus();
+  landingSpotifyBtn.addEventListener('click', (e) => {
+    if (window.location.protocol === 'file:') {
+      e.preventDefault();
+      alert('Ouvrez le site via le serveur pour vous connecter à Spotify.\n\nDans le terminal :\nnpm run dev\n\nPuis allez sur : http://localhost:3000');
+      return;
+    }
+  });
+
+  (async () => {
+    const handled = await initFromSpotifyCallback();
+    if (handled) return;
+    if (currentUser) {
+      const connected = await api.get(`/api/spotify/status?userId=${currentUser.id}`).then((r) => r.connected).catch(() => false);
+      if (connected) {
+        spotifyItems = [];
+        spotifyAlbumsItems = [];
+        await loadSpotifyLibrary(0);
+        await loadSpotifyAlbums(0);
+      }
+      loadTracksAndAlbums();
+    }
+  })();
+
+  btnLogout.addEventListener('click', (e) => {
+    e.preventDefault();
+    currentUser = null;
+    localStorage.removeItem('anytalk:user');
+    updateUserUI();
+  });
 
   spotifyLoadMoreBtn.addEventListener('click', () => loadSpotifyLibrary(spotifyLibraryOffset));
+  spotifyAlbumsLoadMoreBtn.addEventListener('click', () => loadSpotifyAlbums(spotifyAlbumsOffset));
 
   document.querySelectorAll('.nav-link').forEach((btn) => {
     btn.addEventListener('click', () => {
       const view = btn.dataset.view;
-      if (view === 'home') {
-        showView('viewHome');
-        if (currentUser) checkSpotifyStatus();
-      }
+      if (view === 'home') showView('viewHome');
       if (view === 'my-ratings') {
         showView('viewMyRatings');
         loadMyRatings();
@@ -374,33 +373,7 @@ function init() {
     });
   });
 
-  searchInput.addEventListener('input', () => filterLists(searchInput.value));
-
-  loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = new FormData(loginForm).get('username');
-    if (!name || !name.trim()) return;
-    try {
-      const { user } = await api.post('/api/auth/login', { username: name.trim() });
-      currentUser = user;
-      localStorage.setItem('anytalk:user', JSON.stringify(user));
-      updateUserUI();
-      loadMyRatings();
-      loginForm.reset();
-    } catch {
-      alert('Erreur de connexion.');
-    }
-  });
-
-  btnLogin.addEventListener('click', () => {
-    showView('viewMyRatings');
-    loadMyRatings();
-  });
-
-  rateScore.addEventListener('input', () => {
-    rateScoreValue.textContent = rateScore.value;
-  });
-
+  rateScore.addEventListener('input', () => { rateScoreValue.textContent = rateScore.value; });
   document.getElementById('rateCancel').addEventListener('click', () => rateDialog.close());
 
   rateForm.addEventListener('submit', async (e) => {
@@ -410,11 +383,7 @@ function init() {
     const type = fd.get('type');
     const score = parseInt(fd.get('score'), 10);
     const comment = fd.get('comment') || null;
-    const payload = {
-      userId: currentUser.id,
-      score,
-      comment
-    };
+    const payload = { userId: currentUser.id, score, comment };
     if (type === 'track') payload.trackId = parseInt(rateTrackId.value, 10);
     else payload.albumId = parseInt(rateAlbumId.value, 10);
     try {

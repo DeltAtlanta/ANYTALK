@@ -9,6 +9,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const dbPath = path.join(__dirname, 'music.db');
 
+// --- Config pour API externe (à brancher quand tu fourniras l’API) ---
+const EXTERNAL_API_URL = process.env.EXTERNAL_API_URL || '';
+const EXTERNAL_API_KEY = process.env.EXTERNAL_API_KEY || '';
+const USE_EXTERNAL_API = Boolean(EXTERNAL_API_URL);
+
 // --- Middleware ---
 app.use(cors());
 app.use(express.json());
@@ -259,6 +264,23 @@ async function spotifyFetchSavedTracks(accessToken, offset = 0, limit = 50) {
   return res.json();
 }
 
+async function spotifyFetchSavedAlbums(accessToken, offset = 0, limit = 50) {
+  const res = await fetch(
+    `https://api.spotify.com/v1/me/albums?limit=${limit}&offset=${offset}`,
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  );
+  if (!res.ok) throw new Error('Spotify API error');
+  return res.json();
+}
+
+async function spotifyGetProfile(accessToken) {
+  const res = await fetch('https://api.spotify.com/v1/me', {
+    headers: { Authorization: `Bearer ${accessToken}` } }
+  );
+  if (!res.ok) throw new Error('Spotify profile error');
+  return res.json();
+}
+
 // --- Démarrage : charger ou créer la base ---
 async function start() {
   const SQL = await initSqlJs();
@@ -329,18 +351,19 @@ async function start() {
 
   app.post('/api/tracks', (req, res) => {
     try {
-      const { title, artistId, albumId, genre, audioUrl, durationSeconds } = req.body;
+      const { title, artistId, albumId, genre, audioUrl, durationSeconds, coverUrl } = req.body;
       if (!title) return res.status(400).json({ error: 'Titre requis' });
       db.run(
-        `INSERT INTO tracks (title, artist_id, album_id, genre, audio_url, duration_seconds)
-         VALUES (?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO tracks (title, artist_id, album_id, genre, audio_url, duration_seconds, cover_url)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
           title,
           artistId || null,
           albumId || null,
           genre || null,
           audioUrl || null,
-          durationSeconds || null
+          durationSeconds || null,
+          coverUrl || null
         ]
       );
       const row = getRow('SELECT * FROM tracks WHERE id = last_insert_rowid()');
@@ -537,6 +560,16 @@ async function start() {
     }
   });
 
+  app.get('/api/users/:id', (req, res) => {
+    try {
+      const user = getRow('SELECT id, username FROM users WHERE id = ?', [req.params.id]);
+      if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
+      res.json({ user });
+    } catch (e) {
+      handleDbError(res, e);
+    }
+  });
+
   app.get('/api/users/:userId/ratings', (req, res) => {
     try {
       const userId = req.params.userId;
@@ -569,18 +602,101 @@ async function start() {
     }
   });
 
-  // --- Spotify ---
+  // --- Musique du jour (une par jour, déterministe) ---
+  app.get('/api/daily-track', (req, res) => {
+    try {
+      const countRow = getRow('SELECT COUNT(*) AS c FROM tracks');
+      const count = countRow?.c ?? 0;
+      if (count === 0) return res.json({ track: null });
+      const dayOfYear = parseInt(
+        getRow("SELECT strftime('%j', date('now')) AS d").d,
+        10
+      );
+      const offset = dayOfYear % count;
+      const track = getRow(
+        `SELECT t.*, a.name AS artist_name
+         FROM tracks t
+         LEFT JOIN artists a ON t.artist_id = a.id
+         ORDER BY t.id
+         LIMIT 1 OFFSET ?`,
+        [offset]
+      );
+      res.json({ track });
+    } catch (e) {
+      handleDbError(res, e);
+    }
+  });
+
+  // --- Goûts de la communauté (notes récentes de tous, pour montrer nos goûts) ---
+  app.get('/api/community', (req, res) => {
+    try {
+      const limit = Math.min(parseInt(req.query.limit, 10) || 30, 100);
+      const trackRatings = getRows(
+        `SELECT r.id, r.score, r.comment, r.created_at,
+                u.username,
+                t.id AS track_id, t.title AS track_title, t.cover_url,
+                a.name AS artist_name
+         FROM ratings r
+         JOIN users u ON r.user_id = u.id
+         JOIN tracks t ON r.track_id = t.id
+         LEFT JOIN artists a ON t.artist_id = a.id
+         WHERE r.track_id IS NOT NULL
+         ORDER BY r.created_at DESC
+         LIMIT ?`,
+        [limit]
+      );
+      const albumRatings = getRows(
+        `SELECT r.id, r.score, r.comment, r.created_at,
+                u.username,
+                al.id AS album_id, al.title AS album_title, al.cover_url,
+                a.name AS artist_name
+         FROM ratings r
+         JOIN users u ON r.user_id = u.id
+         JOIN albums al ON r.album_id = al.id
+         LEFT JOIN artists a ON al.artist_id = a.id
+         WHERE r.album_id IS NOT NULL
+         ORDER BY r.created_at DESC
+         LIMIT ?`,
+        [limit]
+      );
+      const all = [...(trackRatings || []), ...(albumRatings || [])]
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .slice(0, limit)
+        .map((r) => ({
+          id: r.id,
+          score: r.score,
+          comment: r.comment || null,
+          created_at: r.created_at,
+          username: r.username,
+          type: r.track_id != null ? 'track' : 'album',
+          item_id: r.track_id ?? r.album_id,
+          title: r.track_title ?? r.album_title,
+          artist_name: r.artist_name,
+          cover_url: r.cover_url || null
+        }));
+      res.json({ ratings: all });
+    } catch (e) {
+      handleDbError(res, e);
+    }
+  });
+
+  // --- Spotify (entrée principale : chaque personne connecte son compte) ---
   app.get('/api/spotify/auth', (req, res) => {
-    const userId = req.query.userId;
-    if (!SPOTIFY_CLIENT_ID || !userId) {
-      return res.redirect('/?spotify=error');
+    if (!SPOTIFY_CLIENT_ID) return res.redirect('/?spotify=error');
+    let userId = req.query.userId;
+    if (!userId) {
+      const randomId = Math.random().toString(36).slice(2, 10);
+      const username = 'spotify_' + randomId;
+      db.run('INSERT INTO users (username) VALUES (?)', [username]);
+      userId = getRow('SELECT last_insert_rowid() as id').id;
+      schedulePersist();
     }
     const params = new URLSearchParams({
       client_id: SPOTIFY_CLIENT_ID,
       response_type: 'code',
       redirect_uri: SPOTIFY_REDIRECT_URI,
       scope: SPOTIFY_SCOPES,
-      state: userId
+      state: String(userId)
     });
     res.redirect(`https://accounts.spotify.com/authorize?${params.toString()}`);
   });
@@ -603,8 +719,17 @@ async function start() {
           [userId, data.access_token, data.refresh_token || null, expiresAt]
         );
       }
-      schedulePersist();
-      res.redirect('/?spotify=ok');
+      const accessToken = data.access_token;
+      try {
+        const profile = await spotifyGetProfile(accessToken);
+        let name = (profile.display_name || 'Utilisateur Spotify').trim();
+        if (!name) name = 'Utilisateur';
+        const existingName = getRow('SELECT id FROM users WHERE username = ? AND id != ?', [name, userId]);
+        if (existingName) name = name + '_' + (profile.id || '').slice(0, 6);
+        db.run('UPDATE users SET username = ? WHERE id = ?', [name, userId]);
+        schedulePersist();
+      } catch (_) {}
+      res.redirect(`/?spotify=ok&userId=${userId}`);
     } catch (e) {
       console.error('Spotify callback:', e);
       res.redirect('/?spotify=error');
@@ -637,7 +762,8 @@ async function start() {
           name: t.name,
           artists,
           albumName: album.name,
-          cover
+          cover,
+          type: 'track'
         };
       });
       res.json({
@@ -649,6 +775,40 @@ async function start() {
     } catch (e) {
       console.error('Spotify library:', e);
       res.status(500).json({ error: 'Impossible de charger la bibliothèque Spotify' });
+    }
+  });
+
+  app.get('/api/spotify/albums', async (req, res) => {
+    const userId = req.query.userId;
+    const offset = Math.max(0, parseInt(req.query.offset, 10) || 0);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 50));
+    if (!userId) return res.status(400).json({ error: 'userId requis' });
+    try {
+      const accessToken = await spotifyGetAccessToken(userId);
+      if (!accessToken) return res.status(401).json({ error: 'Spotify non connecté' });
+      const data = await spotifyFetchSavedAlbums(accessToken, offset, limit);
+      const items = (data.items || []).map((item) => {
+        const al = item.album || {};
+        const cover = al.images && al.images.length > 0 ? al.images[0].url : null;
+        const artists = (al.artists || []).map((a) => a.name).join(', ');
+        return {
+          id: al.id,
+          name: al.name,
+          artists,
+          releaseYear: al.release_date ? al.release_date.slice(0, 4) : null,
+          cover,
+          type: 'album'
+        };
+      });
+      res.json({
+        items: items,
+        total: data.total ?? 0,
+        offset: data.offset ?? offset,
+        limit: data.limit ?? limit
+      });
+    } catch (e) {
+      console.error('Spotify albums:', e);
+      res.status(500).json({ error: 'Impossible de charger les albums Spotify' });
     }
   });
 
@@ -670,6 +830,30 @@ async function start() {
       const trackWithArtist = { ...track, artist_name: artistName };
       schedulePersist();
       res.status(201).json({ track: trackWithArtist });
+    } catch (e) {
+      handleDbError(res, e);
+    }
+  });
+
+  app.post('/api/spotify/album-from-spotify', (req, res) => {
+    const { userId, name, artists, coverUrl, releaseYear } = req.body;
+    if (!userId || !name) return res.status(400).json({ error: 'userId et name requis' });
+    try {
+      const artistName = artists || 'Artiste inconnu';
+      let artist = getRow('SELECT id FROM artists WHERE LOWER(name) = ?', [artistName.toLowerCase().trim()]);
+      if (!artist) {
+        db.run('INSERT INTO artists (name) VALUES (?)', [artistName.trim()]);
+        artist = getRow('SELECT id FROM artists WHERE id = last_insert_rowid()');
+      }
+      const year = releaseYear ? parseInt(String(releaseYear).slice(0, 4), 10) : null;
+      db.run(
+        'INSERT INTO albums (title, artist_id, cover_url, release_year, genre) VALUES (?, ?, ?, ?, ?)',
+        [name.trim(), artist.id, coverUrl || null, year, null]
+      );
+      const album = getRow('SELECT * FROM albums WHERE id = last_insert_rowid()');
+      const albumWithArtist = { ...album, artist_name: artistName };
+      schedulePersist();
+      res.status(201).json({ album: albumWithArtist });
     } catch (e) {
       handleDbError(res, e);
     }
